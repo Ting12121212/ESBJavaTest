@@ -71,14 +71,12 @@ public class LikeListController {
 	// =======================================================
 	// 依商品ID 刪除喜好紀錄表單一商品
 
-//		// Thymeleaf寫法
-//		@GetMapping("/shop/cart/deleteProduct")
-//		public String deleteShopCartProduct(@RequestParam Integer productID, Model model, HttpSession session) {
-//
-//			Customer loggedInCustomer = (Customer) session.getAttribute("LoggedInCustomer");
-//			shopCartService.deleteShopCartProductByID(loggedInCustomer.getCustomerID(), productID);
-//
-//			return "redirect:/shop/cart/customer/" + loggedInCustomer.getCustomerID();
-//		}
+		@GetMapping("/likeList/deleteLikeList")
+		public String deleteShopCartProduct(@RequestParam Integer userID, @RequestParam Integer productNo) {
+
+			likeListService.deleteLikeListByID(userID, productNo);
+
+			return "redirect:/likeList/user/3";
+		}
 
 }

@@ -76,10 +76,18 @@
 						<td><span th:text="${aLikelist} ? ${aLikelist.totalAmount}"></span>
 						</td>
 
-						<!-- 移除商品 -->
+						<!-- 更新商品 -->
 						<!-- <td><a th:href="@{/shop/cart/deleteProduct?(productID=${aLikelist.shopProduct.productID})}"
 								class="btn btn-warning">移除 </a>
 						</td> -->
+
+						<!-- 移除商品 -->
+						<td>
+							<a 
+								th:href="@{/likeList/deleteLikeList?userID=3&(productNo=${aLikelist.products.no})}"
+								class="btn btn-warning">移除 
+							</a>
+						</td>
 					</tr>
 				</th:block>
 			</tbody>
