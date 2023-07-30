@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org/">
+
+<head>
+	<meta charset="UTF-8">
+	<title>商城-商品管理</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/datatables.min.css" rel="stylesheet" />
+
+	<style>
+		body {
+			height: 100%;
+			display: flex
+		}
+
+		.content {
+			flex-grow: 1;
+			width: 85%;
+		}
+
+		.container {}
+
+		#dataTable thead th {
+			text-align: center;
+			vertical-align: middle;
+		}
+
+		#dataTable td:nth-child(1) {
+			width: 70px;
+			/* 設定 編號 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(2) {
+			width: 150px;
+			/* 設定 品名 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(3) {
+			width: 80px;
+			/* 設定 圖片 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(4) {
+			width: 80px;
+			/* 設定 種類 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(5) {
+			width: 250px;
+			/* 設定 簡介 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(6) {
+			width: 70px;
+			/* 設定 庫存 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(7) {
+			width: 120px;
+			/* 設定 上架狀態 <td> 的寬度 */
+		}
+
+		#dataTable td:nth-child(8) {
+			width: 150px;
+			/* 設定 管理 <td> 的寬度 */
+		}
+	</style>
+
+</head>
+
+<body>
+<!-- navbar↓ ================================================================= -->
+<div th:replace="~{layout/navbar}"></div>
+<div style="margin-top: 120px;"></div>
+<!-- navbar↑  ==============================================================-->
+
+		<div class="container">
+			<h1 style="text-align: center">商品管理(線上商城)</h1>
+			<br>
+
+			<div class="card">
+				<div class="card-header" style="text-align: center; font-size: 25px;">JavaSweet商城</div>
+
+				<div class="card-body">
+					<br>
+					<a th:href="@{/shop/product/addProductPage}" class="btn btn-primary" style="text-align: left">
+						新增商品</a>
+					<br>
+					<br>
+					<br>
+
+					<table id="dataTable" class="table; table table-hover " style="vertical-align: middle">
+
+						<thead style="font-size: 25px">
+							<tr class="table-secondary">
+								<th scope="col">編號</th>
+								<th scope="col">品名</th>
+								<th scope="col">圖片</th>
+								<th scope="col">種類</th>
+								<th scope="col">簡介</th>
+								<th scope="col">庫存</th>
+								<th scope="col">上架狀態</th>
+								<th scope="col">管理</th>
+							</tr>
+						</thead>
+
+						<tbody id="productTable">
+						</tbody>
+					</table>
+					<p></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/datatables.min.js"></script>
+
+	<script>
+
+		// 頁面載入時執行AJAX渲染商品
+		$(document).ready(function () {
+
+			$.ajax({
+				url: 'http://localhost:8080/JavaSweet/shop/productsManagement',
+				type: 'GET',
+				success: function (response) {
+					renderTable(response);
+					console.log("商品載入成功");
+				},
+				error: function (error) {
+					console.log("商品載入失敗");
+				}
+			});
+
+
+		});
+
+
+		//============================================================
+		// 渲染畫面(data是接收的response 並用來跑下面迴圈用)
+		function renderTable(data) {
+			let tableBody = $("#productTable");
+			tableBody.empty();
+
+			// 渲染畫面index為迴圈的索引 product為自訂名稱 是接收到的JSON根目錄名
+			$.each(data, function (index, product) {
+				let row = $("<tr></tr>");
+
+				// 商品編號
+				row.append($(`<td style="text-align: center"></td>`).text(product.productID));
+
+				// 商品名稱
+				row.append($(`<td style="text-align: center"></td>`).text(product.productName));
+
+				// 商品圖片
+				let imgTd = $("<td></td>");
+				let imgTag = $(`<img alt="" src="/JavaSweet/shop/product/photo/` + product.productID + `" style="width:110px;height:110px">`)
+				imgTd.append(imgTag);
+				row.append(imgTd);
+
+				// 商品種類
+				row.append($(`<td style="text-align: center"></td>`).text(product.shopProductCategory.categoryName));
+
+				// 商品描述
+				row.append($("<td></td>").text(product.description));
+
+				// 商品庫存
+				row.append($(`<td style="text-align: center"></td>`).text(product.unitsInStock));
+
+				// 商品狀態
+				row.append($(`<td style="text-align: center"></td>`).text(product.productStatus));
+
+				// 商品管理按鈕
+				let productID = product.productID;
+				let productStatus = product.productStatus;
+				let buttonTd = $(`<td style="text-align: center"></td>`);
+				let buttonSpan = $("<span></span>");
+				let buttonDiv = $("<div></div>");
+				// *更新按鈕
+				let buttonUpdate = $(`<a href="/JavaSweet/shop/product/updateProductPage/` + productID + `" class="btn btn-warning"></a>`).text("更新");
+				// *刪除按鈕
+				let buttonDelete = $(`<button class="btn btn-danger"></button>`).text("刪除");
+				// *上架按鈕
+				let buttonStatusOn = $(
+					`<button 
+							class="btn btn-outline-success" 
+							style="margin-bottom: 8px"
+							onclick="updateProductStatus(`+ productID + `)">
+						</button>`).text("上架商品");
+				// *下架按鈕
+				let buttonStatusOff = $(
+					`<button 
+							class="btn btn-outline-secondary" style="margin-bottom: 8px"
+							onclick="updateProductStatus(`+ productID + `)">
+						</button>`).text("下架商品");
+
+				// 依商品上下架狀態 判斷渲染的按鈕
+				if (productStatus === '下架中') {
+					buttonDiv.append(buttonStatusOn);
+				}
+				else {
+					buttonDiv.append(buttonStatusOff);
+				};
+
+				buttonSpan.append(buttonUpdate);
+				buttonSpan.append(`&nbsp;`);
+				buttonSpan.append(buttonDelete);
+
+				buttonTd.append(buttonDiv)
+				buttonTd.append(buttonSpan)
+				row.append(buttonTd);
+
+				tableBody.append(row);
+
+
+
+				//============================================================
+				// 刪除商品的AJAX
+				buttonDelete.click(function () {
+					if (confirm("確定刪除嗎?")) {
+						$.ajax({
+							url: `/JavaSweet/shop/product/deleteProduct/` + productID,
+							type: 'GET',
+							success: function (response) {
+								console.log("刪除商品成功");
+
+								// 刪除商品成功後 及時渲染商品的AJAX
+								$.ajax({
+									url: 'http://localhost:8080/JavaSweet/shop/productsManagement',
+									type: 'GET',
+									success: function (response) {
+										renderTable(response);
+										console.log("刪除商品後 載入成功");
+									},
+									error: function (error) {
+										console.log("刪除商品後 載入失敗");
+									}
+								});
+							},
+							error: function (error) {
+								console.log("刪除商品失敗");
+							}
+						})
+					}
+				});
+
+			});
+			dataTable = $('#dataTable').DataTable();
+		}
+
+		//============================================================
+		// 更新商品上下架的AJAX(待執行)
+		function updateProductStatus(productID) {
+			if (confirm("確定更新上下架狀態嗎?")) {
+				$.ajax({
+					url: `/JavaSweet/shop/product/updateProductStatus?productID=` + productID,
+					type: 'POST',
+					success: function (response) {
+						console.log("商品狀態更新成功");
+						
+						// 更新商品狀態成功後 及時渲染商品的AJAX
+						$.ajax({
+							url: 'http://localhost:8080/JavaSweet/shop/productsManagement',
+							type: 'GET',
+							success: function (response) {
+								renderTable(response);
+								console.log("更新商品狀態後 載入成功");
+							},
+							error: function (error) {
+								console.log("更新商品狀態後 載入失敗");
+							}
+						});
+					},
+					error: function (error) {
+						console.log("更新商品狀態失敗");
+					}
+				})
+			}
+		};
+
+	</script>
+
+</body>
+
+</html>

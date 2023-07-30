@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+	<meta charset="UTF-8" />
+	<!-- 引入jQuery-->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>象山銀行 金融商品</title>
+
+	<style>
+		#productIndex {
+			text-align: center;
+		}
+
+		.card-container {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-evenly;
+		}
+
+		.card {
+			width: calc(33.33% - 30px);
+			margin-bottom: 50px;
+			/* margin-right: 20px */
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<!-- navbar↓ ================================================================= -->
+	<div th:replace="~{layout/navbar}"></div>
+	<div style="margin-top: 120px;"></div>
+	<!-- navbar↑  ==============================================================-->
+
+	<div id="productIndex" class="container">
+		<h1>象山銀行 優質金融商品</h1>
+		<div style="margin-top: 40px;"></div>
+
+	<!-- 商品卡片↓  ==============================================================-->
+	<div 
+		id="allProducts" 
+		class="card-container d-flex align-items-center">
+	</div>
+	<!-- 商品卡片↑  ==============================================================-->
+
+
+	<script th:inline="javascript">
+
+		// 顯示商品的AJAX 需載完DOM後才執行AJAX 不然會因時間差無法渲染
+		$(document).ready(function () {
+
+			$.ajax({
+				url: 'http://localhost:8080/ESBJavaTest/products/allProducts',
+				type: 'GET',
+				dataType: 'JSON',
+				success: function (response) {
+					renderProducts(response);
+					addToLikeListAJAX();
+					console.log("商品載入成功");
+
+				},
+				error: function (error) {
+					console.log("商品載入失敗");
+				}
+			});
+		});
+
+		// 渲染畫面(products是接收的response 並用來跑下面each迴圈用)
+		function renderProducts(products) {
+			let productCard = $("#allProducts");
+			productCard.empty();
+
+			$.each(products, function (index, product) {
+				let html = $(`<div class="card" style=" vertical-align: top"></div>`);
+
+				//商品名
+				let productNameAndDescriptionDiv = $(`<div class="card-body"></div>`);
+
+				let productNameHTag = $(`<h5 class="card-title"></h5>`);
+				productNameAndDescriptionDiv.append(productNameHTag.text(product.productName));
+
+				//商品敘述
+				let productDescriptionPTag = $(`<p class="card-text" style="text-align: left; height: 60px;"></p>`);
+				productNameAndDescriptionDiv.append(productDescriptionPTag.text(product.description));
+
+				html.append(productNameAndDescriptionDiv);
+
+				//商品單價
+				let priceUlTag = $(`<ul class="list-group list-group-flush"></ul>`)
+				let priceLiTag = $(`<li class="list-group-item"></li>`)
+				priceUlTag.append(priceLiTag.text(`單價:` + product.price + ` 元 (手續費` + product.feeRate*100 + `%)`));
+
+				html.append(priceUlTag);
+
+				//商品數量(input)
+				let quantityAndAddToLikeListDiv = $(`<div class="card-body"></div>`)
+				let quantityAndAddToLikeListDiv2 = $(`<div style="display:flex;justify-content: space-evenly "></div>`)
+
+				let quantityLable = $(`<lable for="quantity"></lable>`);
+				let quantityInputTag = $(
+					`<input 
+							name="quantity" 
+							type="number" 
+							min="1" 
+							max="999" 
+							class="form-control quantity"
+							style="width: 75px" 
+							value="1">`)
+
+				let productNoInputTag = $(
+					`<input 
+                            class="productNo" 
+                            name="productNo" 
+                            type="hidden" 
+                            value="`+ product.no + `">`)
+
+				quantityAndAddToLikeListDiv2.append(quantityLable.text("數量"));
+				quantityAndAddToLikeListDiv2.append(quantityInputTag);
+				quantityAndAddToLikeListDiv2.append(productNoInputTag);
+
+				quantityAndAddToLikeListDiv2.append("");
+
+				//加入喜好紀錄表(button)
+				let addToLikeListButton = $(`<button class="btn btn-outline-primary addToLikeList" type="submit"></button>`);
+
+				let addToLikeListButtonNotLoggedIn = $(`<a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#loginModel"> </a>`);
+
+				quantityAndAddToLikeListDiv2.append(addToLikeListButton.text("加入喜好紀錄表"))
+
+				quantityAndAddToLikeListDiv.append(quantityAndAddToLikeListDiv2);
+
+				html.append(quantityAndAddToLikeListDiv);
+
+				productCard.append(html);
+			});
+		}
+
+
+		//===加喜好紀錄表的AJAX ↓==============================================
+		// AJAX
+		// 抓加入喜好紀錄表button的class(不能抓id 因為id是唯一值)
+		function addToLikeListAJAX() {
+			$('.addToLikeList').click(function (event) {
+				// 抓quantity & productNo的class
+				let quantityInput = $(this).closest('.card-body').find('.quantity').val();
+				let productNo = $(this).closest('.card-body').find('.productNo').val();
+
+				$.ajax({
+					url: "http://localhost:8080/ESBJavaTest/likeList/addToLikeList",
+					type: "POST",
+					data: {
+						productNo: productNo,
+						orderName: quantityInput
+					},
+					success: function (response) {
+						alert("新增喜好紀錄表成功!");
+						// 清空輸入數量
+						let quantityInput = $(event.target).closest('.card-body').find('.quantity');
+						quantityInput.val(1);
+					},
+					error: function (error) {
+						console.log(error);
+						alert("新增喜好紀錄表失敗! 請再試一遍!");
+					}
+				});
+			});
+		}
+		//===加喜好紀錄表的AJAX ↑==============================================
+
+
+		//===顯示全部商品=====================================================
+		$('#allProductsBtn').click(function (event) {
+
+			// 發送 Ajax 請求
+			$.ajax({
+				url: `http://localhost:8080/ESBJavaTest/products/allProducts`,
+				type: "GET",
+				success: function (response) {
+					renderProducts(response);
+					addToLikeListAJAX();
+					console.error("載入所有商品按鈕成功");
+				},
+				error: function () {
+					console.error("載入所有商品按鈕失敗");
+				},
+			});
+		})
+
+	</script>
+
+</body>
+
+</html>
