@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>線上商城-新增商品</title>
+	<style>
+		body {
+			height: 100%;
+			display: flex;
+		}
+
+		.content {
+			flex-grow: 1;
+			width: 85%;
+		}
+	</style>
+	<!-- jQuery -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+	<div th:replace="~{layout/employeeSidebar}"></div>
+	<div class="content">
+		<div th:replace="~{/layout/employeeTopbar}"></div>
+		<div style="margin-top: 20px;"></div>
+
+		<div class="container">
+			<div class="card m-5">
+				<div class="card-header fs-2 fw-bold">線上商城-更新商品</div>
+				<div class="card-body">
+					<div class="d-flex justify-content-between">
+						<h5 class="card-title">請輸入更新商品之資料</h5>
+						<button id="fast" class="btn btn-outline-primary">一鍵輸入</button>
+					</div>
+
+					<form 
+						th:action="@{/shop/product/updateProduct/{productID}(productID=${shopProduct.productID})}" 
+						th:object="${shopProduct}"
+						enctype="multipart/form-data" 
+						method="post" 
+						class="needs-validation row g-10" 
+						novalidate
+						id="productForm">
+
+						<div class="col-6 my-3">
+							<label class="form-label">新商品名稱：</label> 
+							<input 
+								th:field="*{productName}"
+								type="text" 
+								id="nameInput" 
+								class="form-control" 
+								required />
+							<div class="invalid-feedback">請輸入新商品名稱</div>
+						</div>
+
+
+						<div class="col-6 my-3">
+							<label class="form-label">新商品種類：</label> 
+							<select 
+								th:field="*{shopProductCategory.productCategoryID}"
+								class="form-select"
+								id="categoryInput" 
+								required>
+								<option selected disabled value="">請選擇</option>
+								<option 
+									value="1"
+									th:selected="${shopProduct.shopProductCategory.productCategoryID == 1}">蛋糕</option>
+								<option 
+									value="2"
+									th:selected="${shopProduct.shopProductCategory.productCategoryID == 2}">杯子蛋糕
+								</option>
+								<option 
+									value="3"
+									th:selected="${shopProduct.shopProductCategory.productCategoryID == 3}">馬卡龍</option>
+								<option 
+									value="4"
+									th:selected="${shopProduct.shopProductCategory.productCategoryID == 4}">塔類</option>
+							</select>
+							<div class="invalid-feedback">請選擇商品種類</div>
+						</div>
+
+						<div class="col-6 my-3">
+							<label class="form-label">單價(元)：</label> 
+							<input 
+								type="number" 
+								th:field="*{unitPrice}"
+								name="unitPrice" 
+								id="priceInput" 
+								class="form-control" 
+								min="1" 
+								required />
+							<div class="invalid-feedback">請輸入商品單價</div>
+						</div>
+
+						<div class="col-6 my-3">
+							<label class="form-label">庫存：</label> 
+							<input 
+								th:field="*{unitsInStock}"
+								type="number" 
+								name="unitsInstock" 
+								id="stockInput" 
+								class="form-control" 
+								min="1"
+								required />
+							<div class="invalid-feedback">請輸入商品單價</div>
+						</div>
+
+						<div class="my-3">
+							<label class="form-label">商品描述：</label>
+							<textarea 
+								th:text="${shopProduct.description}" 
+								name="description" 
+								id="descriptionInput"
+								class="form-control" 
+								required>
+							</textarea>
+							<div class="invalid-feedback">請輸入商品描述</div>
+						</div>
+
+						<div class="my-3">
+							<label class="form-label">更新商品圖片：</label> 
+							<input 
+								type="file" 
+								name="shopProduct.photo" 
+								id="photoInput"
+								class="form-control"/>
+						</div>
+
+						<div class="my-3 col-6" style="text-align:center">
+							<label class="form-label">目前商品圖片：</label><br />
+							<img 
+								th:src="@{/shop/product/photo/{shopProductID}(shopProductID=${shopProduct.productID})}" 
+								style="width: 400px;" />
+						</div>
+
+
+						<div class="my-3 col-6" style="text-align:center">
+							<label class="form-label">新圖片預覽：</label><br /> 
+							<img 
+								id="previewImage"
+								src="/JavaSweet/local/no_image.png" 
+								style="width: 400px" />
+						</div>
+
+						<div style="text-align:center">
+							<button 
+								id="submit" 
+								type="submit" 
+								class="btn btn-primary btn-lg mx-3 my-3">確認修改
+							<button>
+							<button 
+								id="cancelAddBTN" 
+								class="btn btn-secondary btn-lg mx-3 my-3">回上頁
+							</button>
+						</div>
+					</form>
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 引入croppie -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.css" />
+
+
+	<script>
+		// 取消新增，返回上一頁
+		$("#cancelAddBTN").click(function (e) {
+			e.preventDefault();
+			window.history.back();
+		});
+
+		// 一鍵輸入
+		let nameInput = document.querySelector("#nameInput");
+		let categoryInput = document.querySelector("#categoryInput");
+		let priceInput = document.querySelector("#priceInput");
+		let statusInput = document.querySelector("#stockInput");
+		let descriptionInput = document.querySelector("#descriptionInput");
+
+		fast.addEventListener("click", function (e) {
+			e.preventDefault(); //取消預設行為
+			nameInput.value = "更新商品測試";
+			categoryInput.value = 3;
+			priceInput.value = 300;
+			stockInput.value = 100;
+			descriptionInput.value = "更新商品描述測試";
+		});
+
+		// 使用Bootstrap Validation驗證
+		(function () {
+			"use strict";
+			var form = document.getElementById("productForm"); // 獲得表單元素
+			form.addEventListener("submit", function (event) {
+				if (!form.checkValidity()) {
+					event.preventDefault();
+					event.stopPropagation();
+				} else {
+					// 在表單驗證通過後顯示確認對話框
+					var confirmResult = confirm("確定修改嗎？");
+					if (!confirmResult) {
+						event.preventDefault();
+					}
+				}
+
+				form.classList.add("was-validated");
+			}, false);
+		})();
+
+		// 預覽與裁切圖片
+		$(document)
+			.ready(
+				function () {
+					let cropper; // 儲存圖片裁切物件
+
+					// 監聽圖片輸入元素的變動事件
+					$("#photoInput")
+						.change(
+							function () {
+								const file = this.files[0]; // 取得選擇的檔案
+
+								// 檢查是否選擇了圖片檔案
+								if (file
+									&& file.type
+										.startsWith("image/")) {
+									const reader = new FileReader();
+
+									// 讀取圖片檔案並在預覽圖片元素中顯示
+									reader.onload = function (e) {
+										$("#previewImage")
+											.attr(
+												"src",
+												e.target.result);
+
+										// 確保之前的裁切物件被銷毀
+										// if (cropper) {
+										// 	cropper.destroy();
+										// }
+
+										// 初始化圖片裁切
+									// 	const image = document
+									// 		.getElementById("previewImage");
+									// 	cropper = new Cropper(
+									// 		image,
+									// 		{
+									// 			aspectRatio: 1, // 裁切比例 1:1
+									// 			viewMode: 2, // 限制裁切區域在預覽圖片內
+									// 			autoCropArea: 1, // 自動適應預覽圖片大小
+									// 			zoomable: true, // 允許縮放預覽圖片
+									// 		});
+									};
+
+									reader.readAsDataURL(file); // 將圖片檔案轉換為 Data URL 格式
+								} else {
+									// 清除預覽圖片
+									$("#previewImage")
+										.attr("src",
+											"/JavaSweet/local/no_image.png");
+
+									// 確保之前的裁切物件被銷毀
+									if (cropper) {
+										cropper.destroy();
+									}
+								
+							}
+						});
+				});
+	</script>
+</body>
+
+</html>
